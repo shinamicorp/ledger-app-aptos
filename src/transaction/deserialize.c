@@ -24,6 +24,10 @@ parser_status_e transaction_deserialize(buffer_t *buf, transaction_t *tx) {
         case TX_RAW:
             return tx_raw_deserialize(buf, tx);
         case TX_RAW_WITH_DATA:
+            break;
+        case TX_RAW_MESSAGE:
+            break;  // Since the raw message is processed before display without direct transaction
+                    // buffer reads, null-termination concerns are mitigated.
         case TX_MESSAGE:
             // To make sure the message is a null-terminated string
             if (buf->size == MAX_TRANSACTION_LEN && buf->ptr[MAX_TRANSACTION_LEN - 1] != 0) {
@@ -107,7 +111,6 @@ parser_status_e tx_raw_deserialize(buffer_t *buf, transaction_t *tx) {
 }
 
 parser_status_e tx_variant_deserialize(buffer_t *buf, transaction_t *tx) {
-    parser_status_e status = TX_VARIANT_UNDEFINED_ERROR;
     if (buf->offset != 0) {
         return TX_VARIANT_READ_ERROR;
     }
@@ -126,17 +129,16 @@ parser_status_e tx_variant_deserialize(buffer_t *buf, transaction_t *tx) {
             tx->tx_variant = TX_RAW;
             return PARSING_OK;
         }
-    } else {
-        status = HASHED_PREFIX_READ_ERROR;
     }
 
-    if (transaction_utils_check_encoding(buf->ptr, buf->size)) {
-        buf->offset = 0;
-        tx->tx_variant = TX_MESSAGE;
-        return PARSING_OK;
-    }
+    // Not a transaction prefix, so we reset the offer to consider the full message
+    buf->offset = 0;
 
-    return status;
+    // Try to display the message as UTF8 if possible
+    tx->tx_variant =
+        transaction_utils_check_encoding(buf->ptr, buf->size) ? TX_MESSAGE : TX_RAW_MESSAGE;
+
+    return PARSING_OK;
 }
 
 parser_status_e entry_function_payload_deserialize(buffer_t *buf, transaction_t *tx) {
