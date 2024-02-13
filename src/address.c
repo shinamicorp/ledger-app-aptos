@@ -57,3 +57,22 @@ bool address_from_pubkey(const uint8_t public_key[static 32], uint8_t *out, size
 
     return true;
 }
+
+bool validate_aptos_bip32_path(const uint32_t *path, size_t path_len) {
+    // m/purpose'/coin_type'/account'/change/address_index
+    // m/44'     /637'      /0'      /0'    /0'
+    const uint32_t aptos_prefix[2] = {0x8000002C, 0x8000027D};
+
+    // A 3-element HD path limit (`m/44'/637'/x'`) is enforced for:
+    //  1. BIP44 compliance, ensuring proper structure (`m/44'/637'` - purpose and coin type).
+    //  2. Operational flexibility, allowing basic account-level (`x'`) fund segregation.
+    //  3. A balance between security and usability, preventing the potential privacy and security
+    //     risks associated with using an overly simple path (e.g., `m/44'/637'`), while not
+    //     requiring the full 5-element path that may be unnecessary for users seeking
+    //     straightforward wallet functionality.
+    if (path_len < 3) {
+        return false;
+    }
+
+    return memcmp(path, aptos_prefix, sizeof(aptos_prefix)) == 0;
+}

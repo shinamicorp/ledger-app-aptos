@@ -30,6 +30,7 @@
 #include "../types.h"
 #include "../sw.h"
 #include "../crypto.h"
+#include "../address.h"
 #include "../ui/display.h"
 #include "../helper/send_response.h"
 
@@ -44,6 +45,11 @@ int handler_get_public_key(buffer_t *cdata, bool display) {
         !buffer_read_bip32_path(cdata, G_context.bip32_path, (size_t) G_context.bip32_path_len)) {
         G_context.req_type = REQUEST_UNDEFINED;
         return io_send_sw(SW_WRONG_DATA_LENGTH);
+    }
+
+    if (!validate_aptos_bip32_path(G_context.bip32_path, G_context.bip32_path_len)) {
+        G_context.req_type = REQUEST_UNDEFINED;
+        return io_send_sw(SW_GET_PUB_KEY_FAIL);
     }
 
     // derive private key according to BIP32 path
