@@ -3,10 +3,34 @@ import pytest
 from application_client.aptos_command_sender import AptosCommandSender, Errors
 from application_client.aptos_response_unpacker import unpack_get_public_key_response, unpack_sign_tx_response
 from ragger.error import ExceptionRAPDU
-from ragger.navigator import NavInsID
+from ragger.navigator import NavInsID, NavIns
 from utils import ROOT_SCREENSHOT_PATH, check_signature_validity
 
 # In this tests we check the behavior of the device when asked to sign a transaction
+
+# This fixture is used to disable the blind signing after a test that enabled it
+@pytest.fixture
+def disable_blind_signing(firmware, backend, navigator):
+    yield
+
+    if firmware.device.startswith("nano"):
+        backend.right_click()
+        backend.both_click()
+        backend.right_click()
+        backend.both_click()
+        backend.left_click()
+        backend.both_click()
+        backend.right_click()
+        backend.both_click()
+    else:
+        instructions = [
+            NavInsID.USE_CASE_HOME_SETTINGS,
+            NavInsID.USE_CASE_SETTINGS_NEXT,
+            NavIns(NavInsID.TOUCH, (200, 113)),
+            NavInsID.USE_CASE_CHOICE_REJECT,
+            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+        ]
+        navigator.navigate(instructions, screen_change_before_first_instruction=False)
 
 
 # In this test we send to the device a transaction to sign and validate it on screen
@@ -53,7 +77,7 @@ def test_sign_tx_short_tx(firmware, backend, navigator, test_name):
 # In this test we send to the device a transaction to sign and validate it on screen
 # The transaction will be sent in multiple chunks
 # Also, this transaction has a request for blind signing activation
-def test_blind_sign_tx_long_tx(firmware, backend, navigator, test_name):
+def test_blind_sign_tx_long_tx(firmware, backend, navigator, test_name, disable_blind_signing):
     # Use the app interface instead of raw interface
     client = AptosCommandSender(backend)
     path: str = "m/44'/637'/1'/0'/0'"
@@ -211,7 +235,7 @@ def test_sign_short_raw_msg(firmware, backend, navigator, test_name):
 
 # In this test we send to the device a message to sign and validate it on screen
 # We will ensure that the displayed information is correct by using screenshots comparison
-def test_sign_long_raw_msg(firmware, backend, navigator, test_name):
+def test_sign_long_raw_msg(firmware, backend, navigator, test_name, disable_blind_signing):
     # Use the app interface instead of raw interface
     client = AptosCommandSender(backend)
     # The path used for this entire test

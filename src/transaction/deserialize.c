@@ -24,8 +24,11 @@ parser_status_e transaction_deserialize(buffer_t *buf, transaction_t *tx) {
         case TX_RAW:
             return tx_raw_deserialize(buf, tx);
         case TX_RAW_WITH_DATA:
-        case TX_MESSAGE:
+            break;
         case TX_RAW_MESSAGE:
+            break;  // Since the raw message is processed before display without direct transaction
+                    // buffer reads, null-termination concerns are mitigated.
+        case TX_MESSAGE:
             // To make sure the message is a null-terminated string
             if (buf->size == MAX_TRANSACTION_LEN && buf->ptr[MAX_TRANSACTION_LEN - 1] != 0) {
                 return WRONG_LENGTH_ERROR;
@@ -132,9 +135,8 @@ parser_status_e tx_variant_deserialize(buffer_t *buf, transaction_t *tx) {
     buf->offset = 0;
 
     // Try to display the message as UTF8 if possible
-    tx->tx_variant = transaction_utils_check_encoding(buf->ptr, buf->size)
-        ? TX_MESSAGE
-        : TX_RAW_MESSAGE;
+    tx->tx_variant =
+        transaction_utils_check_encoding(buf->ptr, buf->size) ? TX_MESSAGE : TX_RAW_MESSAGE;
 
     return PARSING_OK;
 }

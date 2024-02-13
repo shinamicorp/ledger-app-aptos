@@ -111,13 +111,14 @@ int ui_display_raw_message() {
     memset(g_struct, 0, sizeof(g_struct));
     const bool short_enough = sizeof(g_struct) >= 2 * G_context.tx_info.raw_tx_len + 1;
     if (short_enough) {
-        format_hex(G_context.tx_info.raw_tx, G_context.tx_info.raw_tx_len,
-                   g_struct, sizeof(g_struct));
+        format_hex(G_context.tx_info.raw_tx,
+                   G_context.tx_info.raw_tx_len,
+                   g_struct,
+                   sizeof(g_struct));
     } else {
         const size_t cropped_bytes_len = (sizeof(g_struct) - sizeof(DOTS)) / 2;
-        format_hex(G_context.tx_info.raw_tx, cropped_bytes_len,
-                   g_struct, sizeof(g_struct));
-        strcpy(g_struct + cropped_bytes_len * 2, DOTS);
+        format_hex(G_context.tx_info.raw_tx, cropped_bytes_len, g_struct, sizeof(g_struct));
+        strncpy(g_struct + cropped_bytes_len * 2, DOTS, sizeof(DOTS));
     }
 
     if (!short_enough) {
