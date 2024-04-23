@@ -27,7 +27,6 @@ def disable_blind_signing(firmware, backend, navigator):
             NavInsID.USE_CASE_HOME_SETTINGS,
             NavInsID.USE_CASE_SETTINGS_NEXT,
             NavIns(NavInsID.TOUCH, (200, 113)),
-            NavInsID.USE_CASE_CHOICE_REJECT,
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
         ]
         navigator.navigate(instructions, screen_change_before_first_instruction=False)
