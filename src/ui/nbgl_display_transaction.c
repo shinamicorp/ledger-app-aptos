@@ -31,147 +31,36 @@
 #include "../globals.h"
 #include "action/validate.h"
 
-static void confirm_transaction_rejection(void) {
-    validate_transaction(false);
-    nbgl_useCaseStatus("Transaction rejected", false, ui_menu_main);
-}
-
-static void confirm_unparsed_transaction_rejection(void) {
-    reject_unparsed_transaction();
-    nbgl_useCaseStatus("Transaction rejected", false, ui_menu_main);
-}
-
-static void ask_transaction_rejection(nbgl_callback_t callback) {
-    nbgl_useCaseConfirm("Reject transaction?",
-                        NULL,
-                        "Yes, Reject",
-                        "Go back to transaction",
-                        callback);
-}
-
-static void ask_transaction_rejection_confirmation(void) {
-    ask_transaction_rejection(confirm_transaction_rejection);
-}
-
-static void ask_unparsed_transaction_rejection_confirmation(void) {
-    ask_transaction_rejection(confirm_unparsed_transaction_rejection);
-}
-
 static void review_choice(bool confirm) {
     if (confirm) {
         validate_transaction(true);
-        nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, ui_menu_main);
+        nbgl_useCaseStatus("Transaction signed", true, ui_menu_main);
     } else {
-        ask_transaction_rejection_confirmation();
+        validate_transaction(false);
+        nbgl_useCaseStatus("Transaction rejected", false, ui_menu_main);
     }
-}
-
-static void review_unparsed_choice(bool confirm) {
-    if (confirm) {
-        nbgl_useCaseStaticReviewVerify(&C_aptos_logo_64px,
-                                       "Sign transaction",
-                                       "Hold to sign",
-                                       "Reject transaction",
-                                       review_choice,
-                                       ask_transaction_rejection_confirmation);
-    } else {
-        ask_unparsed_transaction_rejection_confirmation();
-    }
-}
-
-static void review_default_continue(void) {
-    pairs[0].item = "Transaction Type";
-    pairs[0].value = g_tx_type;
-    pairs[1].item = "Gas Fee";
-    pairs[1].value = g_gas_fee;
-
-    pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 2;
-    pairList.pairs = pairs;
-
-    infoLongPress.icon = &C_aptos_logo_64px;
-    infoLongPress.text = "Sign transaction";
-    infoLongPress.longPressText = "Hold to sign";
-
-    nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
-}
-
-static void review_entry_function_continue(void) {
-    pairs[0].item = "Transaction Type";
-    pairs[0].value = g_tx_type;
-    pairs[1].item = "Function";
-    pairs[1].value = g_function;
-    pairs[2].item = "Gas Fee";
-    pairs[2].value = g_gas_fee;
-
-    pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 3;
-    pairList.pairs = pairs;
-
-    infoLongPress.icon = &C_aptos_logo_64px;
-    infoLongPress.text = "Sign transaction";
-    infoLongPress.longPressText = "Hold to sign";
-
-    nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
-}
-
-static void review_tx_aptos_account_transfer_continue(void) {
-    pairs[0].item = "Transaction Type";
-    pairs[0].value = g_tx_type;
-    pairs[1].item = "Function";
-    pairs[1].value = g_function;
-    pairs[2].item = "Receiver";
-    pairs[2].value = g_address;
-    pairs[3].item = "Amount";
-    pairs[3].value = g_amount;
-    pairs[4].item = "Gas Fee";
-    pairs[4].value = g_gas_fee;
-
-    pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 5;
-    pairList.pairs = pairs;
-
-    infoLongPress.icon = &C_aptos_logo_64px;
-    infoLongPress.text = "Sign transaction";
-    infoLongPress.longPressText = "Hold to sign";
-
-    nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
-}
-
-static void review_tx_coin_transfer_continue(void) {
-    pairs[0].item = "Transaction Type";
-    pairs[0].value = g_tx_type;
-    pairs[1].item = "Function";
-    pairs[1].value = g_function;
-    pairs[2].item = "Coin Type";
-    pairs[2].value = g_struct;
-    pairs[3].item = "Receiver";
-    pairs[3].value = g_address;
-    pairs[4].item = "Amount";
-    pairs[4].value = g_amount;
-    pairs[5].item = "Gas Fee";
-    pairs[5].value = g_gas_fee;
-
-    pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 6;
-    pairList.pairs = pairs;
-
-    infoLongPress.icon = &C_aptos_logo_64px;
-    infoLongPress.text = "Sign transaction";
-    infoLongPress.longPressText = "Hold to sign";
-
-    nbgl_useCaseStaticReview(&pairList, &infoLongPress, "Reject transaction", review_choice);
 }
 
 int ui_display_transaction() {
     const int ret = ui_prepare_transaction();
     if (ret == UI_PREPARED) {
-        nbgl_useCaseReviewVerify(&C_aptos_logo_64px,
+        pairs[0].item = "Transaction type";
+        pairs[0].value = g_tx_type;
+        pairs[1].item = "Gas fee";
+        pairs[1].value = g_gas_fee;
+
+        pair_list.nbMaxLinesForValue = 0;
+        pair_list.nbPairs = 2;
+        pair_list.pairs = pairs;
+
+        nbgl_useCaseReviewVerify(TYPE_TRANSACTION,
+                                 &pair_list,
+                                 &C_aptos_logo_64px,
                                  "Review transaction",
                                  NULL,
-                                 "Reject transaction",
-                                 review_default_continue,
-                                 ask_transaction_rejection_confirmation);
+                                 "Sign transaction?",
+                                 NULL,
+                                 review_choice);
         return 0;
     }
 
@@ -181,12 +70,25 @@ int ui_display_transaction() {
 int ui_display_entry_function() {
     const int ret = ui_prepare_entry_function();
     if (ret == UI_PREPARED) {
-        nbgl_useCaseReviewVerify(&C_aptos_logo_64px,
+        pairs[0].item = "Transaction type";
+        pairs[0].value = g_tx_type;
+        pairs[1].item = "Function";
+        pairs[1].value = g_function;
+        pairs[2].item = "Gas fee";
+        pairs[2].value = g_gas_fee;
+
+        pair_list.nbMaxLinesForValue = 0;
+        pair_list.nbPairs = 3;
+        pair_list.pairs = pairs;
+
+        nbgl_useCaseReviewVerify(TYPE_TRANSACTION,
+                                 &pair_list,
+                                 &C_aptos_logo_64px,
                                  "Review transaction",
                                  NULL,
-                                 "Reject transaction",
-                                 review_entry_function_continue,
-                                 ask_transaction_rejection_confirmation);
+                                 "Sign transaction?",
+                                 NULL,
+                                 review_choice);
         return 0;
     }
 
@@ -196,12 +98,28 @@ int ui_display_entry_function() {
 int ui_display_tx_aptos_account_transfer() {
     const int ret = ui_prepare_tx_aptos_account_transfer();
     if (ret == UI_PREPARED) {
-        nbgl_useCaseReviewStart(&C_aptos_logo_64px,
-                                "Review transaction\nto send Aptos",
-                                NULL,
-                                "Reject transaction",
-                                review_tx_aptos_account_transfer_continue,
-                                ask_transaction_rejection_confirmation);
+        pairs[0].item = "Transaction type";
+        pairs[0].value = g_tx_type;
+        pairs[1].item = "Function";
+        pairs[1].value = g_function;
+        pairs[2].item = "Receiver";
+        pairs[2].value = g_address;
+        pairs[3].item = "Amount";
+        pairs[3].value = g_amount;
+        pairs[4].item = "Gas fee";
+        pairs[4].value = g_gas_fee;
+
+        pair_list.nbMaxLinesForValue = 0;
+        pair_list.nbPairs = 5;
+        pair_list.pairs = pairs;
+
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                           &pair_list,
+                           &C_aptos_logo_64px,
+                           "Review transaction to send Aptos",
+                           NULL,
+                           "Sign transaction?",
+                           review_choice);
         return 0;
     }
 
@@ -211,27 +129,54 @@ int ui_display_tx_aptos_account_transfer() {
 int ui_display_tx_coin_transfer() {
     const int ret = ui_prepare_tx_coin_transfer();
     if (ret == UI_PREPARED) {
-        nbgl_useCaseReviewStart(&C_aptos_logo_64px,
-                                "Review transaction\nto transfer coins",
-                                NULL,
-                                "Reject transaction",
-                                review_tx_coin_transfer_continue,
-                                ask_transaction_rejection_confirmation);
+        pairs[0].item = "Transaction type";
+        pairs[0].value = g_tx_type;
+        pairs[1].item = "Function";
+        pairs[1].value = g_function;
+        pairs[2].item = "Coin type";
+        pairs[2].value = g_struct;
+        pairs[3].item = "Receiver";
+        pairs[3].value = g_address;
+        pairs[4].item = "Amount";
+        pairs[4].value = g_amount;
+        pairs[5].item = "Gas fee";
+        pairs[5].value = g_gas_fee;
+
+        pair_list.nbMaxLinesForValue = 0;
+        pair_list.nbPairs = 6;
+        pair_list.pairs = pairs;
+
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                           &pair_list,
+                           &C_aptos_logo_64px,
+                           "Review transaction to transfer coins",
+                           NULL,
+                           "Sign transaction?",
+                           review_choice);
         return 0;
     }
 
     return ret;
 }
 
-int ui_display_unparsed_transaction() {
-    const int ret = ui_prepare_unparsed_transaction();
+int ui_display_unparsed_transaction(parser_status_e status) {
+    const int ret = ui_prepare_unparsed_transaction(status);
     if (ret == UI_PREPARED) {
-        nbgl_useCaseChoice(&C_warning64px,
-                           "Transaction\ndetails unavailable",
-                           "Acknowledge the risks\nand proceed with caution.",
-                           "Continue",
-                           "Reject transaction",
-                           review_unparsed_choice);
+        pairs[0].item = "Parser status";
+        pairs[0].value = g_struct;
+
+        pair_list.nbMaxLinesForValue = 0;
+        pair_list.nbPairs = 1;
+        pair_list.pairs = pairs;
+
+        nbgl_useCaseReviewVerify(TYPE_TRANSACTION,
+                                 &pair_list,
+                                 &C_aptos_logo_64px,
+                                 "Transaction details unavailable",
+                                 "Proceed with caution!",
+                                 "Sign transaction?",
+                                 NULL,
+                                 review_choice);
         return 0;
     }
 

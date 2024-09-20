@@ -427,8 +427,8 @@ static void ui_action_continue_unparsed_transaction(bool choice) {
     }
 }
 
-int ui_display_unparsed_transaction() {
-    const int ret = ui_prepare_unparsed_transaction();
+int ui_display_unparsed_transaction(parser_status_e status) {
+    const int ret = ui_prepare_unparsed_transaction(status);
     if (ret == UI_PREPARED) {
         g_validate_callback = &ui_action_continue_unparsed_transaction;
         ui_flow_display(ux_display_warn_uparsed_tx_flow);

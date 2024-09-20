@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../transaction/types.h"
+
 #define UI_PREPARED -10
 
 extern char g_bip32_path[60];
@@ -28,8 +30,8 @@ int ui_prepare_address(void);
 int ui_display_transaction(void);
 int ui_prepare_transaction(void);
 
-int ui_display_unparsed_transaction(void);
-int ui_prepare_unparsed_transaction(void);
+int ui_display_unparsed_transaction(parser_status_e status);
+int ui_prepare_unparsed_transaction(parser_status_e status);
 
 int ui_display_message(void);
 int ui_display_raw_message(void);

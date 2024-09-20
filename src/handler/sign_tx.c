@@ -104,7 +104,7 @@ int handler_sign_tx(buffer_t *cdata, uint8_t chunk, bool more) {
                 ui_status = ui_display_transaction();
             } else {
                 G_context.state = STATE_CONTINUE_UNPARSED;
-                ui_status = ui_display_unparsed_transaction();
+                ui_status = ui_display_unparsed_transaction(status);
             }
 
             G_context.req_type = REQUEST_UNDEFINED;  // all the work is done, reset the context

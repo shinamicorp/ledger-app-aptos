@@ -137,11 +137,15 @@ int ui_prepare_transaction() {
     return UI_PREPARED;
 }
 
-int ui_prepare_unparsed_transaction() {
+int ui_prepare_unparsed_transaction(parser_status_e status) {
     if (G_context.req_type != CONFIRM_TRANSACTION || G_context.state != STATE_CONTINUE_UNPARSED) {
         G_context.state = STATE_NONE;
         return io_send_sw(SW_BAD_STATE);
     }
+
+    // g_struct has been used as a general purpose buffer in other cases, e.g. raw message signing
+    snprintf(g_struct, sizeof(g_struct), "%d", status);
+    PRINTF("Parser status: %s\n", g_struct);
 
     return UI_PREPARED;
 }
